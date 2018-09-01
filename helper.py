@@ -48,16 +48,7 @@ def get_pick_probabilities(p_fitness):
     pick_probabilities = normed/np.sum(normed)
     return pick_probabilities
 
-def mutate(creature,mutation_rate=0.2):
-    new = Creature().to(device)
-    new.load_state_dict(creature.state_dict()) 
-    for p in new.parameters():
 
-        mutation = np.random.normal(scale = 0.07,size = p.data.shape)
-        mutation *= np.random.choice([1, 0], p.data.shape,p=[mutation_rate,1-mutation_rate])
-        mutation = torch.from_numpy(mutation).type('torch.FloatTensor').to(device)
-        p.data += mutation
-    return new
 
 #measure creature fitness
 def measure_fitness(creature,env,device,discrete_actions,render = False,max_steps = 1000,n_behavior_samples = 10):
