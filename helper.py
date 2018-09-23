@@ -45,7 +45,7 @@ def get_pick_probabilities(p_fitness):
     normed = p_fitness- np.mean(p_fitness)
     normed -= np.min(normed)
     normed = np.power(normed, 0.5)
-    pick_probabilities = normed/np.sum(normed)
+    pick_probabilities = normed/(np.sum(normed))
     return pick_probabilities
 
 
