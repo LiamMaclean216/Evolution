@@ -83,7 +83,7 @@ def measure_fitness(creature,env,device,discrete_actions,render = False,max_step
         
         observation, reward, done, _ = env.step(action)
         
-        total_reward += reward
+        total_reward += max(reward,0)
         
         if done:
             break
