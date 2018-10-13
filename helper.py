@@ -35,18 +35,21 @@ def get_pick_probabilities(p_fitness):
 
 
 #measure creature fitness
-def measure_fitness(creature,env,device,discrete_actions,render = False,max_steps = 1000):
+def measure_fitness(creature,env,device,discrete_actions,min_reward,render = False,max_steps = 1000):
     observation = env.reset()
+    
     #creature fitness is cumulative reward in simulation
     total_reward = 0
-    
-    for i in range(max_steps):
-        
+    i = 0
+    while True:
+        if (i >= max_steps and max_steps > 0) or total_reward < min_reward:
+            break
+            
         if render:
             env.render()
             
         #convert observation into tensor
-        obs = torch.from_numpy(observation).to(device).type('torch.cuda.FloatTensor')
+        obs = torch.from_numpy(observation).type('torch.FloatTensor').to(device)
        
         #get action
         if discrete_actions:
@@ -64,14 +67,14 @@ def measure_fitness(creature,env,device,discrete_actions,render = False,max_step
         
         if done:
             break
-    
+        i+=1
     return total_reward
 
 #measure fitness of entire population and return scores
-def measure_population_fitness(population,env,device,discrete_actions,max_steps = 1000):
+def measure_population_fitness(population,env,device,discrete_actions,min_reward,max_steps = 1000):
     scores = []
 
     for idx,p in enumerate(population):
-        fitness = measure_fitness(p,env,device,discrete_actions,max_steps = max_steps)
+        fitness = measure_fitness(p,env,device,discrete_actions,min_reward,max_steps = max_steps)
         scores.append(fitness)
     return np.array(scores)
