@@ -82,7 +82,7 @@ def measure_population_fitness(population,env,device,discrete_actions,min_reward
 def write(memory,w_,e,a,device):
     w = w_.squeeze(0).unsqueeze(-1)*torch.ones([1,memory.size(-1)]).type("torch.FloatTensor").to(device).unsqueeze(0)
     w = F.cosine_similarity(w.transpose(1,2),memory.transpose(1,2))
-    #print(w.shape)
+    #print(w)
     w = torch.softmax(w,-1)
     erase = (w.unsqueeze(1)*e.unsqueeze(2))
     add = (w.unsqueeze(1)*a.unsqueeze(2))
