@@ -18,6 +18,43 @@ class Creature(nn.Module):
         #out = self.layer2(out)
         out = self.layer3(out)
         return out
+
+class Discriminator(nn.Module):
+    def __init__(self):
+        super(Discriminator, self).__init__()
+        self.layer1 = nn.Sequential(
+            nn.Conv1d(1, 16, 5, stride=1, padding=0),  
+            nn.BatchNorm1d(16),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv1d(16, 8, 5, stride=1, padding=0),  
+            nn.BatchNorm1d(8),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.MaxPool1d(2, stride=1))
+        
+        self.layer2 = nn.Sequential(
+            nn.Conv1d(8, 32, 5, stride=1,padding=0),  
+            nn.BatchNorm1d(32),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv1d(32, 16, 5, stride=1,padding=0),  
+            nn.BatchNorm1d(16),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.MaxPool1d(2, stride=1))
+        
+        self.layer3 = nn.Linear(16*2886, 128)
+        self.layer4 = nn.Sequential(       
+            nn.Linear(128, 1))#,
+            #nn.Sigmoid())
+    def forward(self, out):
+        out = out.unsqueeze(1)
+        
+        out = self.layer1(out)
+        out = self.layer2(out)
+        #print(out.shape)
+        out = out.view(out.size(0),out.size(1)*out.size(2))
+        
+        out = self.layer3(out)
+        out = self.layer4(out)
+        return out
     
 class Generator(nn.Module):
     def __init__(self,input_num,output_num,device):
