@@ -6,6 +6,7 @@ import numpy as np
 import random
 import torch.nn.functional as F
 from models import Creature
+
 #turn vector into model parameters
 def set_params(model,data):
     idx = 0
@@ -74,15 +75,13 @@ def measure_fitness(creature,env,device,discrete_actions,min_reward,render = Fal
 def measure_population_fitness(population,env,device,discrete_actions,min_reward,max_steps = 1000):
     scores = []
 
-    for idx,p in enumerate(population):
+    for p in population:
         fitness = measure_fitness(p,env,device,discrete_actions,min_reward,max_steps = max_steps)
         scores.append(fitness)
     return np.array(scores)
 
 def mate(env,creature_out_size,a,device,m,d,mutation_rate_m,mutation_rate_d,use_gen,mutation_scale=0.07):
     child = Creature(env.observation_space.shape[0],creature_out_size)
-    #mom = mutate(mom,mutation_rate_m,mutation_scale)
-    #dad = mutate(dad,mutation_rate_d,mutation_scale)
     
     #get parents as vectors
     mom = get_params(m)
@@ -96,10 +95,7 @@ def mate(env,creature_out_size,a,device,m,d,mutation_rate_m,mutation_rate_d,use_
     generated = mutate(generated,device,mutation_rate,mutation_scale)
     child = set_params(child,generated)
     
-    #mutate child
-    
-    #child = mutate(child,device,mutation_rate,mutation_scale)
-    
+
     return child
 
 def mutate(creature,device,mutation_rate=0.2,scale = 0.07):
@@ -112,20 +108,6 @@ def mutate(creature,device,mutation_rate=0.2,scale = 0.07):
         return out
     else:
         return creature
-#def mutate(creature,device,mutation_rate=0.2,scale = 0.07,start_layer = 0):
-#    if mutation_rate != 0:
-#        new = creature.__class__(creature.input_size,creature.output_size).to(device)
-#        new.load_state_dict(creature.state_dict()) 
-#        for idx,p in enumerate(new.parameters()):
-#            if idx < start_layer:
-#                continue
-#            mutation = np.random.normal(scale = scale,size = p.data.shape)
-#            mutation *= np.random.choice([1, 0], p.data.shape,p=[mutation_rate,1-mutation_rate])
-#            mutation = torch.from_numpy(mutation).type('torch.FloatTensor').to(device)
-#            p.data += mutation
-#        return new
-#    else:
-#        return creature
 
 def gen_children(population,device,use_gen,batch_size, a = 0.1):
     mom = []
