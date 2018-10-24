@@ -90,7 +90,8 @@ def mate(env,creature_out_size,a,device,m,d,mutation_rate_m,mutation_rate_d,use_
     a = np.array([a])
     a = torch.from_numpy(a).type("torch.FloatTensor").to(device)
 
-    generated = use_gen(mom,dad,a).squeeze(0)
+    generated,confidence = use_gen(mom,dad,a)
+    generated = generated.squeeze(0)
     mutation_rate = np.mean([mutation_rate_m,mutation_rate_d])
     generated = mutate(generated,device,mutation_rate,mutation_scale)
     child = set_params(child,generated)
@@ -121,8 +122,8 @@ def gen_children(population,device,use_gen,batch_size, a = 0.1):
         a = torch.from_numpy(a).type("torch.FloatTensor").to(device)
 
 
-        c = use_gen(m,d,a).squeeze(0)
-
+        c,_ = use_gen(m,d,a)
+        c = c.squeeze(0)
         mom.append(m)
         dad.append(d)
         child.append(c)

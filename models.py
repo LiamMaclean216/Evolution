@@ -75,10 +75,11 @@ class Generator(nn.Module):
         #print(out.shape)
         out = out.view(out.size(0),out.size(1)*out.size(2))
         out = self.layer3(out)
-        out = self.layer4(out)
+        out = torch.tanh(self.layer4(out))
+        confidence = out
         if a >= 0:
             z = torch.zeros(mom.shape).to(self.device)
-            mom_func = (mom+(torch.tanh(out+3)*a)) * (torch.min(mom,z)/(mom+0.000001))
-            dad_func = (dad+(torch.tanh(-out+3)*a)) * (torch.max(dad,z)/(dad+0.000001))
+            mom_func = (mom) * (torch.min(mom,z)/(mom+0.000001))
+            dad_func = (dad) * (torch.max(dad,z)/(dad+0.000001))
             out = mom_func + dad_func
-        return out
+        return out, confidence
