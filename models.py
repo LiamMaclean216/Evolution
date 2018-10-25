@@ -33,18 +33,31 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer3 = nn.Linear(16*722, 128)
-        self.layer4 = nn.Linear(128, 1)
+        self.layer3 = nn.Sequential(    
+            nn.Conv1d(16, 32, 5, stride=2, padding=0),  
+            nn.BatchNorm1d(32),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.MaxPool1d(2, stride=1))
+        self.layer4 = nn.Sequential(    
+            nn.Conv1d(32, 64, 5, stride=2, padding=0),  
+            nn.BatchNorm1d(64),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.MaxPool1d(2, stride=1))
+        
+        self.layer5 = nn.Linear(64*176, 128)
+        self.layer6 = nn.Linear(128, 1)
     def forward(self, out):
         out = out.unsqueeze(1)
         
         out = self.layer1(out)
         out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
         #print(out.shape)
         out = out.view(out.size(0),out.size(1)*out.size(2))
         
-        out = self.layer3(out)
-        out = self.layer4(out)
+        out = self.layer5(out)
+        out = self.layer6(out)
         return out
     
 class Generator(nn.Module):
@@ -64,18 +77,32 @@ class Generator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer3 = nn.Linear(8*1448, 128)
-        self.layer4 = nn.Linear(128, output_num)
+        self.layer3 = nn.Sequential(
+            nn.Conv1d(8, 16, 5, stride=2, padding=0),  
+            nn.BatchNorm1d(16),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.MaxPool1d(2, stride=1))
+            
+        self.layer4 = nn.Sequential(    
+            nn.Conv1d(16, 32, 5, stride=2, padding=0),  
+            nn.BatchNorm1d(32),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.MaxPool1d(2, stride=1))
+        
+        self.layer5 = nn.Linear(32*358, 128)
+        self.layer6 = nn.Linear(128, output_num)
         
     def forward(self, mom,dad,a):
         out = torch.cat([mom,dad]).unsqueeze(0)
         out = out.unsqueeze(1)
         out = self.layer1(out)
         out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
         #print(out.shape)
         out = out.view(out.size(0),out.size(1)*out.size(2))
-        out = self.layer3(out)
-        out = torch.tanh(self.layer4(out))
+        out = self.layer5(out)
+        out = torch.tanh(self.layer6(out))
         confidence = out
         if a >= 0:
             z = torch.zeros(mom.shape).to(self.device)
