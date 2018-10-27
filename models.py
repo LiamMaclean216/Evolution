@@ -22,29 +22,29 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         self.layer1 = nn.Sequential(
-            nn.Conv1d(1, 8, 5, stride=2, padding=0),  
+            nn.Conv1d(1, 8, 5, stride=1, padding=0),  
             nn.BatchNorm1d(8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
             
         self.layer2 = nn.Sequential(    
-            nn.Conv1d(8, 16, 5, stride=2, padding=0),  
+            nn.Conv1d(8, 16, 5, stride=1, padding=0),  
             nn.BatchNorm1d(16),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
         self.layer3 = nn.Sequential(    
-            nn.Conv1d(16, 32, 5, stride=2, padding=0),  
+            nn.Conv1d(16, 32, 5, stride=1, padding=0),  
             nn.BatchNorm1d(32),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         self.layer4 = nn.Sequential(    
-            nn.Conv1d(32, 64, 5, stride=2, padding=0),  
-            nn.BatchNorm1d(64),
+            nn.Conv1d(32, 16, 5, stride=1, padding=0),  
+            nn.BatchNorm1d(16),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer5 = nn.Linear(64*176, 128)
+        self.layer5 = nn.Linear(16*2884, 128)
         self.layer6 = nn.Linear(128, 1)
     def forward(self, out):
         out = out.unsqueeze(1)
@@ -66,30 +66,30 @@ class Generator(nn.Module):
         self.device = device
 
         self.layer1 = nn.Sequential(
-            nn.Conv1d(1, 4, 5, stride=2, padding=0),  
+            nn.Conv1d(1, 4, 5, stride=1, padding=0),  
             nn.BatchNorm1d(4),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
             
         self.layer2 = nn.Sequential(    
-            nn.Conv1d(4, 8, 5, stride=2, padding=0),  
+            nn.Conv1d(4, 8, 5, stride=1, padding=0),  
             nn.BatchNorm1d(8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
         self.layer3 = nn.Sequential(
-            nn.Conv1d(8, 16, 5, stride=2, padding=0),  
+            nn.Conv1d(8, 16, 5, stride=1, padding=0),  
             nn.BatchNorm1d(16),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
             
         self.layer4 = nn.Sequential(    
-            nn.Conv1d(16, 32, 5, stride=2, padding=0),  
+            nn.Conv1d(16, 32, 5, stride=1, padding=0),  
             nn.BatchNorm1d(32),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer5 = nn.Linear(32*358, 128)
+        self.layer5 = nn.Linear(32*5788, 128)
         self.layer6 = nn.Linear(128, output_num)
         
     def forward(self, mom,dad,a):

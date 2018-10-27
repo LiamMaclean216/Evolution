@@ -93,10 +93,9 @@ def mate(env,creature_out_size,a,device,m,d,mutation_rate_m,mutation_rate_d,use_
     generated,confidence = use_gen(mom,dad,a)
     generated = generated.squeeze(0)
     confidence = confidence.squeeze(0).cpu().detach().numpy()
-    mutation_rate = np.mean([mutation_rate_m,mutation_rate_d])
+    mutation_rate = np.min([mutation_rate_m,mutation_rate_d])
     generated = mutate(generated,device,confidence,mutation_rate,mutation_scale)
     child = set_params(child,generated)
-    
 
     return child
 
@@ -106,9 +105,7 @@ def mutate(creature,device,confidence,mutation_rate=0.2,scale = 0.07):
         #print("#")
         #print(confidence[0:10])
         mutation = np.random.normal(scale = scale,size = creature.shape)
-        mutation *= ((1-np.abs(confidence)))
-        #print(mutation[0:10])
-        #print("#")
+        mutation *= ((1-np.abs(confidence))) + 0.1
         #print(mutation[0:10])
         mutation *= np.random.choice([1, 0], creature.shape,p=[mutation_rate,1-mutation_rate])
        
