@@ -87,10 +87,10 @@ def mate(env,creature_out_size,a,device,m,d,mutation_rate_m,mutation_rate_d,use_
     mom = get_params(m)
     dad = get_params(d)
     
-    a = np.array([a])
-    a = torch.from_numpy(a).type("torch.FloatTensor").to(device)
+    #a = np.array([a])
+    #a = torch.from_numpy(a).type("torch.FloatTensor").to(device)
 
-    generated,confidence = use_gen(mom,dad,a)
+    generated,confidence,_ = use_gen(mom.unsqueeze(0),dad.unsqueeze(0),a)
     generated = generated.squeeze(0)
     confidence = confidence.squeeze(0).cpu().detach().numpy()
     mutation_rate = np.min([mutation_rate_m,mutation_rate_d])
@@ -105,7 +105,7 @@ def mutate(creature,device,confidence,mutation_rate=0.2,scale = 0.07):
         #print("#")
         #print(confidence[0:10])
         mutation = np.random.normal(scale = scale,size = creature.shape)
-        mutation *= ((1-np.abs(confidence))) + 0.1
+        #mutation *= ((1-np.abs(confidence))) + 0.1
         #print(mutation[0:10])
         mutation *= np.random.choice([1, 0], creature.shape,p=[mutation_rate,1-mutation_rate])
        
@@ -116,24 +116,53 @@ def mutate(creature,device,confidence,mutation_rate=0.2,scale = 0.07):
         return creature
 
 def gen_children(population,device,use_gen,batch_size, a = 0.1):
-    mom = []
-    dad = []
     child = []
+    all_a = []
+    m_batch = []
+    d_batch = []
     for b in range(batch_size):
-        m = get_params(random.choice(population))
-        d = get_params(random.choice(population))
-
-        a = np.array([a])
-        a = torch.from_numpy(a).type("torch.FloatTensor").to(device)
-
-        c,_ = use_gen(m,d,a)
-        c = c.squeeze(0)
-        mom.append(m)
-        dad.append(d)
-        child.append(c)
-
-    mom = torch.stack(mom).to(device)
-    dad = torch.stack(dad).to(device)
-    child = torch.stack(child).to(device)
-    return child    
+        #m = get_params(random.choice(population))
+        #d = get_params(random.choice(population))
+        m_batch.append(get_params(random.choice(population)))
+        d_batch.append(get_params(random.choice(population)))
+        #a = np.array([a])
+        #a = torch.from_numpy(a).type("torch.FloatTensor").to(device)
+    m_batch = torch.stack(m_batch, dim=0).to(device)
+    d_batch = torch.stack(d_batch, dim=0).to(device)
+    c,_,gen_a = use_gen(m_batch,d_batch,a)
+    c = c.squeeze(0)
+    all_a.append(gen_a)
+    child.append(c)
         
+    #all_a = torch.stack(all_a).to(device)
+    child = torch.stack(child).to(device)
+    return c ,all_a   
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

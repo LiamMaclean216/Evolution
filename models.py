@@ -1,16 +1,16 @@
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
+from torch.autograd import Variable
 
 class Creature(nn.Module):
     def __init__(self,input_size,output_size):
         super(Creature, self).__init__()
         self.input_size =input_size
         self.output_size = output_size
-        self.layer1 = nn.Linear(input_size, 100)
+        self.layer1 = nn.Linear(input_size, 20)
         #self.layer2 = nn.Linear(20, 20)
-        self.layer3 = nn.Linear(100, output_size)
-        
+        self.layer3 = nn.Linear(20, output_size)
     
     def forward(self, x):
         out = self.layer1(x) 
@@ -44,7 +44,7 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer5 = nn.Linear(16*2884, 128)
+        self.layer5 = nn.Linear(16*122, 128)
         self.layer6 = nn.Linear(128, 1)
     def forward(self, out):
         out = out.unsqueeze(1)
@@ -58,13 +58,18 @@ class Discriminator(nn.Module):
         
         out = self.layer5(out)
         out = self.layer6(out)
+        #print(out)
+        #out = torch.max(out,torch.zeros(out.shape).cuda())
+        
+        #out[out > 0] = 0
+        #print(out)
         return out
     
 class Generator(nn.Module):
     def __init__(self,input_num,output_num,device):
         super(Generator, self).__init__()
         self.device = device
-
+        self.output_num = output_num
         self.layer1 = nn.Sequential(
             nn.Conv1d(1, 4, 5, stride=1, padding=0),  
             nn.BatchNorm1d(4),
@@ -89,11 +94,15 @@ class Generator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer5 = nn.Linear(32*5788, 128)
+        self.layer5 = nn.Linear(32*274, 128)
         self.layer6 = nn.Linear(128, output_num)
-        
     def forward(self, mom,dad,a):
-        out = torch.cat([mom,dad]).unsqueeze(0)
+        if len(list(mom.shape)) > 1:
+            rand = torch.rand([mom.size(0),10]).cuda()
+        else:
+            rand = torch.rand([10]).cuda()
+        out = torch.cat([mom,dad,rand],-1)#.unsqueeze(0)
+        
         out = out.unsqueeze(1)
         out = self.layer1(out)
         out = self.layer2(out)
@@ -101,12 +110,18 @@ class Generator(nn.Module):
         out = self.layer4(out)
         #print(out.shape)
         out = out.view(out.size(0),out.size(1)*out.size(2))
+       
         out = self.layer5(out)
-        out = torch.tanh(self.layer6(out))
+        out = self.layer6(out)
+        
         confidence = out
-        if a >= 0:
-            z = torch.zeros(mom.shape).to(self.device)
-            mom_func = (mom) * (torch.min(mom,z)/(mom+0.000001))
-            dad_func = (dad) * (torch.max(dad,z)/(dad+0.000001))
-            out = mom_func + dad_func
-        return out, confidence
+        
+        z = torch.zeros(mom.shape).to(self.device)
+        mom_func = (mom+(torch.tanh(out+3)*a)) * (torch.min(mom,z)/(mom+0.000001))
+        dad_func = (dad+(torch.tanh(-out+3)*a)) * (torch.max(dad,z)/(dad+0.000001))
+        out = mom_func + dad_func
+        #print()
+        #print(out)
+        out = torch.clamp(out, max = 1, min = -1)
+        #print(out)
+        return out, confidence,a
