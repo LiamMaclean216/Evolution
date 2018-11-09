@@ -117,7 +117,6 @@ def mutate(creature,device,confidence,mutation_rate=0.2,scale = 0.07):
 
 def gen_children(population,device,use_gen,batch_size, a = 0.1):
     child = []
-    all_a = []
     m_batch = []
     d_batch = []
     for b in range(batch_size):
@@ -131,12 +130,12 @@ def gen_children(population,device,use_gen,batch_size, a = 0.1):
     d_batch = torch.stack(d_batch, dim=0).to(device)
     c,_,gen_a = use_gen(m_batch,d_batch,a)
     c = c.squeeze(0)
-    all_a.append(gen_a)
+    #print(gen_a)
     child.append(c)
         
     #all_a = torch.stack(all_a).to(device)
     child = torch.stack(child).to(device)
-    return c ,all_a   
+    return c ,gen_a   
         
     
     
