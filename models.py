@@ -117,11 +117,12 @@ class Generator(nn.Module):
         confidence = out
         
         z = torch.zeros(mom.shape).to(self.device)
-        mom_func = (mom+(torch.tanh(out+3)*a)) * (torch.min(mom,z)/(mom+0.000001))
-        dad_func = (dad+(torch.tanh(-out+3)*a)) * (torch.max(dad,z)/(dad+0.000001))
+        epsilon = +0.000001
+        mom_func = (mom+(torch.tanh(out+3)*a)) * (torch.min(mom+epsilon,z)/(mom+epsilon))
+        dad_func = (dad+(torch.tanh(-out+3)*a)) * (torch.max(dad+epsilon,z)/(dad+epsilon))
         out = mom_func + dad_func
         #print()
         #print(out)
-        out = torch.clamp(out, max = 1, min = -1)
+        #out = torch.clamp(out, max = 1, min = -1)
         #print(out)
         return out, confidence,a
