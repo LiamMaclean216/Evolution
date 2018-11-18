@@ -45,7 +45,7 @@ class Discriminator(nn.Module):
             nn.MaxPool1d(2, stride=1))
         
         self.layer5 = nn.Linear(1952, 128)
-        self.layer6 = nn.Linear(128, 1)
+        self.layer6 = nn.Linear(128, 2)
     def forward(self, out):
         out = out.unsqueeze(1)
         
@@ -106,16 +106,13 @@ class Generator(nn.Module):
         out = out.view(out.size(0),out.size(1)*out.size(2))
         out = self.layer5(out)
         out = out[...,1:]
-        a = out[...,0].unsqueeze(-1)
+        lr = F.softplus(out[...,0].unsqueeze(-1))
         confidence = out
         
         z = torch.zeros(mom.shape).to(self.device)
         epsilon = +0.000001
-        mom_func = (mom+(torch.tanh(out+3)*a)) * (torch.min(mom+epsilon,z)/(mom+epsilon))
-        dad_func = (dad+(torch.tanh(-out+3)*a)) * (torch.max(dad+epsilon,z)/(dad+epsilon))
+        mom_func = ((mom+epsilon)+(torch.tanh((6*out)+3)*lr)) * (torch.min(mom+epsilon,z)/(mom+epsilon))
+        dad_func = ((dad+epsilon)+(torch.tanh(-(6*out)+3)*lr)) * (torch.max(dad+epsilon,z)/(dad+epsilon))
         out = mom_func + dad_func
-        #print()
-        #print(out)
-        #out = torch.clamp(out, max = 1, min = -1)
-        #print(out)
-        return out, confidence,a
+        
+        return out, confidence, lr
