@@ -95,7 +95,7 @@ def mate(env,creature_out_size,a,device,m,d,mutation_rate_m,mutation_rate_d,use_
     generated = generated.squeeze(0)
     
     mutation_rate = np.min([mutation_rate_m,mutation_rate_d])
-    #generated = mutate(generated,device,confidence,mutation_rate,mutation_scale)
+    generated = mutate(generated,device,confidence,mutation_rate,mutation_scale)
     child = set_params(child,generated)
     
 
@@ -117,7 +117,7 @@ def mutate(creature,device,confidence,mutation_rate=0.2,scale = 0.07):
     else:
         return creature
 
-def gen_children_in_batch(population,device,use_gen,batch_size, a = 0.1):
+def gen_children(population,device,use_gen,batch_size, a = 0.1):
     child = []
     m_batch = []
     d_batch = []
@@ -140,7 +140,7 @@ def gen_children_in_batch(population,device,use_gen,batch_size, a = 0.1):
     child = torch.stack(child).to(device)
     return c ,gen_a   
         
-def gen_children(population,device,gen,batch_size, a = 0.1):
+def gen_children_no_batch(population,device,gen,batch_size, a = 0.1):
     child = []
     gen_a_all = [] 
     np.random.shuffle(population)

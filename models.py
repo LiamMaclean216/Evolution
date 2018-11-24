@@ -64,7 +64,7 @@ class Discriminator(nn.Module):
         out = self.layer6(out1)
         #out[...,1]*=(out[...,1]>0).type('torch.cuda.FloatTensor')
         #out[...,1] = torch.clamp(out[...,1],min=0)
-        out[...,0] = torch.tanh(out[...,0])
+        #out[...,0] = torch.tanh(out[...,0])
         return out,out1
     
 class Generator(nn.Module):
@@ -73,40 +73,40 @@ class Generator(nn.Module):
         self.device = device
         self.output_num = output_num
         self.layer1 = nn.Sequential(
-            nn.Conv1d(1, 2, 5, stride=2, padding=0),  
-            #nn.BatchNorm1d(8),
+            nn.Conv1d(1, 2, 5, stride=1, padding=0),  
+            nn.BatchNorm1d(2),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
             
         self.layer2 = nn.Sequential(    
-            nn.Conv1d(2, 4, 5, stride=2, padding=0),  
-            #nn.BatchNorm1d(16),
+            nn.Conv1d(2, 4, 5, stride=1, padding=0),  
+            nn.BatchNorm1d(4),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.hidden_size = 800
-        self.n_layers = 2
-        self.gru = nn.GRU(1496, self.hidden_size, self.n_layers, bidirectional=True)
-        self.hidden = None
+        #self.hidden_size = 800
+        #self.n_layers = 2
+        #self.gru = nn.GRU(1496, self.hidden_size, self.n_layers, bidirectional=True)
+        #self.hidden = None
         
         self.layer3 = nn.Sequential(
-            nn.Conv1d(1, 8, 5, stride=2, padding=0),  
-            #nn.BatchNorm1d(32),
+            nn.Conv1d(4, 8, 5, stride=1, padding=0),  
+            nn.BatchNorm1d(8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
             
         self.layer4 = nn.Sequential(    
-            nn.Conv1d(8, 16, 5, stride=2, padding=0),  
-            #nn.BatchNorm1d(16),
+            nn.Conv1d(8, 16, 5, stride=1, padding=0),  
+            nn.BatchNorm1d(16),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer5 = nn.Linear(6336, (output_num*3))
+        self.layer5 = nn.Linear(23856, (output_num*3))
     def forward(self, mom,dad,y):
         if len(list(mom.shape)) > 1:
-            rand = torch.rand([mom.size(0),30]).cuda()
+            rand = torch.rand([mom.size(0),30]).to(self.device)
         else:
-            rand = torch.rand([30]).cuda()
+            rand = torch.rand([30]).to(self.device)
         
         lr = y.unsqueeze(-1)
         out = torch.cat([mom,dad,lr,rand],-1)#.unsqueeze(0)
@@ -115,8 +115,8 @@ class Generator(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         
-        out = out.view(out.size(0),1,out.size(1)*out.size(2))
-        out, self.hidden = self.gru(out,self.hidden)
+        #out = out.view(out.size(0),1,out.size(1)*out.size(2))
+        #out, self.hidden = self.gru(out,self.hidden)
         
         out = self.layer3(out)
         out = self.layer4(out)
