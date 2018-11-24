@@ -91,9 +91,9 @@ def mate(env,creature_out_size,a,device,m,d,mutation_rate_m,mutation_rate_d,use_
     #a = torch.from_numpy(a).type("torch.FloatTensor").to(device)
     a = torch.from_numpy(np.array([a])).type('torch.FloatTensor').to(device)
     
-    generated,confidence,_ = use_gen(mom.unsqueeze(0),dad.unsqueeze(0),a)
+    generated,confidence = use_gen(mom.unsqueeze(0),dad.unsqueeze(0),a)
     generated = generated.squeeze(0)
-    
+    confidence = confidence.squeeze(0)
     mutation_rate = np.min([mutation_rate_m,mutation_rate_d])
     generated = mutate(generated,device,confidence,mutation_rate,mutation_scale)
     child = set_params(child,generated)
@@ -107,7 +107,7 @@ def mutate(creature,device,confidence,mutation_rate=0.2,scale = 0.07):
         #print("#")
         #print(confidence[0:10])
         mutation = np.random.normal(scale = scale,size = creature.shape)
-        #mutation *= ((1-np.abs(confidence))) + 0.1
+        mutation *= ((1-np.abs(confidence.cpu().detach().numpy()))) + 0.1
         #print(mutation[0:10])
         mutation *= np.random.choice([1, 0], creature.shape,p=[mutation_rate,1-mutation_rate])
        
@@ -131,14 +131,14 @@ def gen_children(population,device,use_gen,batch_size, a = 0.1):
     m_batch = torch.stack(m_batch, dim=0).to(device)
     d_batch = torch.stack(d_batch, dim=0).to(device)
     
-    c,_,gen_a = use_gen(m_batch,d_batch,a)
+    c,confidence = use_gen(m_batch,d_batch,a)
     c = c.squeeze(0)
     #print(gen_a)
     child.append(c)
         
     #all_a = torch.stack(all_a).to(device)
     child = torch.stack(child).to(device)
-    return c ,gen_a   
+    return c ,confidence   
         
 def gen_children_no_batch(population,device,gen,batch_size, a = 0.1):
     child = []

@@ -127,23 +127,17 @@ class Generator(nn.Module):
         #lr = y#F.softplus(out[...,0].unsqueeze(-1))
        
         
-        pick = torch.sigmoid(out[...,:2])
-        pick = torch.argmax(pick,-1).unsqueeze(-1)
+        confidence = torch.softmax(out[...,:2],-1)
+        pick = torch.argmax(confidence,-1).unsqueeze(-1)
+        
         parents = torch.cat([mom.unsqueeze(-1),dad.unsqueeze(-1)],-1)
         
         child = torch.zeros(mom.shape).to(self.device)
-        #for i,ind in enumerate(parents):
-        #    for j,at in enumerate(ind):
-        #        child[i,j] = parents[i,j][pick[i,j]]
         child = torch.gather(parents,-1,pick).squeeze(-1) 
         
         mutation = torch.tanh(out[...,2])*lr
         out = child + mutation
         
-        #z = torch.zeros(mom.shape).to(self.device)
-        #epsilon = +0.000001
-        #mom_func = ((mom+epsilon)+(torch.tanh((6*out)+3)*lr)) * (torch.min(mom+epsilon,z)/(mom+epsilon))
-        #dad_func = ((dad+epsilon)+(torch.tanh(-(6*out)+3)*lr)) * (torch.max(dad+epsilon,z)/(dad+epsilon))
-        #out = mom_func + dad_func
+        confidence = (torch.gather(confidence,-1,pick) - torch.gather(confidence,-1,1-pick)).squeeze(-1)
         
-        return out, None, out[...,0]
+        return out, confidence
