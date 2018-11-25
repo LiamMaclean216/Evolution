@@ -20,7 +20,7 @@ import math
 
 from params import *
 
-from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
+
 
 env = gym.make(envs[env_to_use]).unwrapped
 if discrete_actions:
@@ -219,7 +219,7 @@ for i in range(n_generations):
     print("Trained GAN : {}s".format(int(time.time() - start_time)))
     
     #Every ten generations show progress
-    if i %10 == 0 and i != 0:
+    if False:
         fitness = measure_fitness(population[np.argmax(p_fitness_)],env,device,discrete_actions,min_reward=-100000,
                                   render = True,max_steps = 500)
     

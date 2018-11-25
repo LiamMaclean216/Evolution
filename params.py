@@ -3,7 +3,7 @@ max_population = population_size
 max_population_batch = 2
 out_size = population_size
 n_generations = 300
-all_a = 0#.001
+all_a = 0.0005
 population_exponent = 4
 
 envs = ['CartPole-v1','Acrobot-v1','MountainCar-v0','Pendulum-v0','BipedalWalker-v2','LunarLander-v2']
