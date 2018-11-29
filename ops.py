@@ -117,7 +117,7 @@ def mutate(creature,device,confidence,mutation_rate=0.2,scale = 0.07):
     else:
         return creature
 
-def gen_children(population,device,use_gen,batch_size, a = 0.1):
+def gen_children_sdf(population,device,use_gen,batch_size, a = 0.1):
     child = []
     m_batch = []
     d_batch = []
@@ -140,10 +140,10 @@ def gen_children(population,device,use_gen,batch_size, a = 0.1):
     child = torch.stack(child).to(device)
     return c ,confidence   
         
-def gen_children_no_batch(population,device,gen,batch_size, a = 0.1):
+def gen_children(population,device,gen,batch_size, a = 0.1):
     child = []
-    gen_a_all = [] 
-    np.random.shuffle(population)
+    confidence_all = [] 
+    #np.random.shuffle(population)
     for b in range(batch_size):
         
         #m = get_params(random.choice(population)).unsqueeze(0)
@@ -153,13 +153,13 @@ def gen_children_no_batch(population,device,gen,batch_size, a = 0.1):
             d = get_params(population[b+1]).unsqueeze(0)
         else:
             d = get_params(population[0]).unsqueeze(0)
-        c,_,gen_a = gen(m,d,a[b].unsqueeze(-1))
+        c,confidence = gen(m,d,a[b].unsqueeze(-1))
         c = c.squeeze(0)
         child.append(c)
-        gen_a_all.append(gen_a)
+        confidence_all.append(confidence)
     child = torch.stack(child).to(device)
-    gen_a = torch.stack(gen_a_all).to(device)
-    return child, gen_a
+    confidence = torch.stack(confidence_all).to(device)
+    return child, confidence
     
     
     

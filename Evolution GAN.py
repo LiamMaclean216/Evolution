@@ -12,6 +12,7 @@ import random
 import torch.nn.functional as F
 from ops import *
 from models import *
+
 import matplotlib.pyplot as plt
 import random
 import time
@@ -109,11 +110,13 @@ def train_gan(population,p_fitness,batch_size = 20,n_epochs = 100):
             dis_confidence.backward()
             
             dis_optimizer.step() 
+            dis_loss_all.append(dis_error_real_mean)  
+            dis_confidence_all.append(dis_confidence)
             
-            
-
+        #if False:
         #for i in range(len(population)//batch_size):
             #generate children from population
+            gen_optimizer.zero_grad()
             mutation = torch.from_numpy(np.random.uniform(all_a,all_a,batch_size)).type('torch.FloatTensor').to(device)
             
             child,confidence = gen_children(population,device,gen,batch_size,a = mutation)
@@ -121,14 +124,14 @@ def train_gan(population,p_fitness,batch_size = 20,n_epochs = 100):
             dis_out_f,dis_out_last = dis(child)
             dis_out_f = dis_out_f.squeeze(-1)
             
-            gen_optimizer.zero_grad()
+            
             
             #define generator loss
-            #variety = torch.std(dis_out_f[...,0])#-torch.mean(torch.std(dis_out_last,-1))
+            #variety = -torch.std(dis_out_f[...,0])#-torch.mean(torch.std(dis_out_last,-1))
             probs = torch.softmax(dis_out_f[...,0],-1)
-            variety = -(torch.sum(probs*torch.log(probs)))
-
-            gen_error_exploration = 0 +  (variety)-torch.mean(dis_out_f[...,1])
+            variety = -(torch.sum(probs*torch.log(probs),-1)) * 0.1
+            
+            gen_error_exploration =  (variety)-torch.mean(dis_out_f[...,1])
             gen_error_exploitation = -torch.mean(dis_out_f[...,0]) 
             gen_error =  gen_error_exploitation + (gen_error_exploration)
             
@@ -138,12 +141,11 @@ def train_gan(population,p_fitness,batch_size = 20,n_epochs = 100):
             #keep losses to draw graph 
             gen_explore_all.append(gen_error_exploration)
             gen_exploit_all.append(gen_error_exploitation)
-            dis_loss_all.append(dis_error_real_mean)  
-            dis_confidence_all.append(dis_confidence)
+            
             
     #print(rank)
     #print(dis_out_r[...,0])
-    print(confidence)
+    #print(confidence)
     #print(get_params(population[0]))
     #print()
             
@@ -188,7 +190,7 @@ for i in range(n_generations):
    
     #calculate population fitness
     p_fitness_ = measure_population_fitness(population,env,device,discrete_actions,min_reward=-1000000,
-                                                             max_steps = 500)
+                                                             max_steps = 2000)
     print("Measured population fitness : {}s".format(int(time.time() - start_time)))
     
     #Store populations and remove older ones
@@ -220,10 +222,7 @@ for i in range(n_generations):
               batch_size =fitness_batch.size,n_epochs = 50)
     print("Trained GAN : {}s".format(int(time.time() - start_time)))
     
-    #Every ten generations show progress
-    if False:
-        fitness = measure_fitness(population[np.argmax(p_fitness_)],env,device,discrete_actions,min_reward=-100000,
-                                  render = True,max_steps = 500)
+
     
     #Scale of normal distribution used for mutation
     
@@ -240,7 +239,7 @@ for i in range(n_generations):
     gen.hidden = None
     print("Evolved : {}s".format(int(time.time() - start_time)))
     
- 
+    
     
     print("Generation {}  fitness : {}".format(i+1,np.max(p_fitness_)))
     print("#################################")

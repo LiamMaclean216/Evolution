@@ -73,24 +73,24 @@ class Generator(nn.Module):
         self.device = device
         self.output_num = output_num
         self.layer1 = nn.Sequential(
-            nn.Conv1d(1, 2, 5, stride=1, padding=0),  
-            nn.BatchNorm1d(2),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.MaxPool1d(2, stride=1))
+            nn.ConvTranspose1d(1511, 512, 4, stride=1, padding=0),  
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(0.2, inplace=True),)
+            #nn.MaxPool1d(2, stride=1))
             
         self.layer2 = nn.Sequential(    
-            nn.Conv1d(2, 4, 5, stride=1, padding=0),  
-            nn.BatchNorm1d(4),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.MaxPool1d(2, stride=1))
+            nn.ConvTranspose1d(512, 256, 4, stride=1, padding=0),  
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(0.2, inplace=True),)
+            #nn.MaxPool1d(2, stride=1))
         
-        #self.hidden_size = 800
-        #self.n_layers = 2
-        #self.gru = nn.GRU(1496, self.hidden_size, self.n_layers, bidirectional=True)
-        #self.hidden = None
+        self.hidden_size = 300
+        self.n_layers = 1
+        self.gru = nn.GRU(1792, self.hidden_size, self.n_layers, bidirectional=False)
+        self.hidden = None
         
         self.layer3 = nn.Sequential(
-            nn.Conv1d(4, 8, 5, stride=1, padding=0),  
+            nn.Conv1d(1, 8, 5, stride=1, padding=0),  
             nn.BatchNorm1d(8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
@@ -101,7 +101,7 @@ class Generator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool1d(2, stride=1))
         
-        self.layer5 = nn.Linear(23856, (output_num*3))
+        self.layer5 = nn.Linear(4640, (output_num*3))
     def forward(self, mom,dad,y):
         if len(list(mom.shape)) > 1:
             rand = torch.rand([mom.size(0),30]).to(self.device)
@@ -109,14 +109,13 @@ class Generator(nn.Module):
             rand = torch.rand([30]).to(self.device)
         
         lr = y.unsqueeze(-1)
-        out = torch.cat([mom,dad,lr,rand],-1)#.unsqueeze(0)
+        out = torch.cat([mom,dad,lr,rand],-1)#.unsqueeze(-1)
         
-        out = out.unsqueeze(1)
+        out = out.unsqueeze(-1)
         out = self.layer1(out)
         out = self.layer2(out)
-        
-        #out = out.view(out.size(0),1,out.size(1)*out.size(2))
-        #out, self.hidden = self.gru(out,self.hidden)
+        out = out.view(out.size(0),1,out.size(1)*out.size(2))
+        out, self.hidden = self.gru(out,self.hidden)
         
         out = self.layer3(out)
         out = self.layer4(out)
