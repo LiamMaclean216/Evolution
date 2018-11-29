@@ -42,7 +42,7 @@ def evolve(population,population_out_size,gen,p_fitness,mutation_rate,mutation_s
     sort = np.argsort(np.max(p_fitness)-p_fitness)
     p_exp = population_exponent
     if population_exponent <= 0:
-        p_exp = fitness
+        p_exp = population_out_size
         
     choice = []
     for i in range(population_out_size+1):
@@ -124,9 +124,11 @@ def train_gan(population,p_fitness,batch_size = 20,n_epochs = 100):
             gen_optimizer.zero_grad()
             
             #define generator loss
-            variety = -torch.std(dis_out_f[...,0])#-torch.mean(torch.std(dis_out_last,-1))
-            
-            gen_error_exploration =  (variety)-torch.mean(dis_out_f[...,1])
+            #variety = torch.std(dis_out_f[...,0])#-torch.mean(torch.std(dis_out_last,-1))
+            probs = torch.softmax(dis_out_f[...,0],-1)
+            variety = -(torch.sum(probs*torch.log(probs)))
+
+            gen_error_exploration = 0 +  (variety)-torch.mean(dis_out_f[...,1])
             gen_error_exploitation = -torch.mean(dis_out_f[...,0]) 
             gen_error =  gen_error_exploitation + (gen_error_exploration)
             
@@ -186,7 +188,7 @@ for i in range(n_generations):
    
     #calculate population fitness
     p_fitness_ = measure_population_fitness(population,env,device,discrete_actions,min_reward=-1000000,
-                                                             max_steps = 2000)
+                                                             max_steps = 500)
     print("Measured population fitness : {}s".format(int(time.time() - start_time)))
     
     #Store populations and remove older ones
